@@ -1,6 +1,8 @@
 local world = require "main.modules.world"
 
 local CHOOSE = hash("choose")
+local REROLL = hash("reroll")
+local SKIP = hash("skip")
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
@@ -13,6 +15,18 @@ function init(self)
 	if self.autoplay then
 		world.start()
 		self.t = 0
+		-- --config=game.test_evo=1: start with every weapon maxed plus its partner item, then evolve them all
+		if sys.get_config_int("game.test_evo", 0) == 1 then
+			local U = require "main.modules.upgrades"
+			for _, id in ipairs(U.WEAPON_ORDER) do
+				while (U.find_weapon(world.s, id) or { level = 0 }).level < #U.WEAPONS[id].levels do
+					U.apply(world.s, { kind = "weapon", id = id, name = id, tag = "" })
+				end
+				U.apply(world.s, { kind = "passive", id = U.WEAPONS[id].evo.partner, name = id, tag = "" })
+			end
+			world.s.stats = U.compute_stats(world.s, require("main.modules.config").PLAYER)
+			for _ = 1, #U.WEAPON_ORDER do world.open_chest() end
+		end
 	end
 end
 
@@ -43,15 +57,27 @@ local function autopilot(self, dt)
 	world.input.right, world.input.left = math.max(0, mx), math.max(0, -mx)
 	world.input.up, world.input.down = math.max(0, my), math.max(0, -my)
 	if world.s.state == "levelup" then
+		if world.s.rerolls > 0 and math.random() < 0.2 then world.reroll() end
 		world.choose(math.random(1, #world.s.choices))
+	end
+	-- exercise the stats screen now and then
+	if world.s.state == "playing" and math.floor(world.s.time / 40) ~= self.last_pause then
+		self.last_pause = math.floor(world.s.time / 40)
+		world.toggle_pause()
+		world.toggle_pause()
 	end
 	local s = world.s
 	if math.floor(s.time / 15) ~= self.last_report then
 		self.last_report = math.floor(s.time / 15)
 		local ws = {}
-		for _, w in ipairs(s.weapons) do ws[#ws + 1] = w.id .. w.level end
-		print(string.format("[autoplay] t=%.0f state=%s lv=%d hp=%.0f kills=%d enemies=%d gems=%d proj=%d weapons=%s",
-			s.time, s.state, s.level, s.player.hp, s.kills, #s.enemies, #s.gems, #s.projectiles, table.concat(ws, ",")))
+		for _, w in ipairs(s.weapons) do
+			ws[#ws + 1] = w.id .. (w.evolved and "E" or w.level) .. "=" .. math.floor(s.dmg_by[w.id] or 0)
+		end
+		local ps = {}
+		for id, lv in pairs(s.passives) do ps[#ps + 1] = id .. lv end
+		print(string.format("[autoplay] t=%.0f state=%s lv=%d hp=%.0f kills=%d enemies=%d gems=%d proj=%d pools=%d eb=%d chests=%d evo=%d weapons=%s passives=%s",
+			s.time, s.state, s.level, s.player.hp, s.kills, #s.enemies, #s.gems, #s.projectiles, #s.pools, #s.ebullets,
+			s.chests, s.evolutions, table.concat(ws, ","), table.concat(ps, ",")))
 	end
 end
 
@@ -65,6 +91,10 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == CHOOSE then
 		world.choose(message.index)
+	elseif message_id == REROLL then
+		world.reroll()
+	elseif message_id == SKIP then
+		world.skip()
 	end
 end
 

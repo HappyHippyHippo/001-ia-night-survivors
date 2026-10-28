@@ -88,6 +88,69 @@ images {
 images {
   image: "/main/assets/images/icon_chicken.png"
 }
+images {
+  image: "/main/assets/images/icon_water.png"
+}
+images {
+  image: "/main/assets/images/icon_axe.png"
+}
+images {
+  image: "/main/assets/images/icon_area.png"
+}
+images {
+  image: "/main/assets/images/icon_amount.png"
+}
+images {
+  image: "/main/assets/images/icon_luck.png"
+}
+images {
+  image: "/main/assets/images/icon_growth.png"
+}
+images {
+  image: "/main/assets/images/ebullet.png"
+}
+images {
+  image: "/main/assets/images/flask.png"
+}
+images {
+  image: "/main/assets/images/axe.png"
+}
+images {
+  image: "/main/assets/images/cross.png"
+}
+images {
+  image: "/main/assets/images/clock.png"
+}
+images {
+  image: "/main/assets/images/num_0.png"
+}
+images {
+  image: "/main/assets/images/num_1.png"
+}
+images {
+  image: "/main/assets/images/num_2.png"
+}
+images {
+  image: "/main/assets/images/num_3.png"
+}
+images {
+  image: "/main/assets/images/num_4.png"
+}
+images {
+  image: "/main/assets/images/num_5.png"
+}
+images {
+  image: "/main/assets/images/num_6.png"
+}
+images {
+  image: "/main/assets/images/num_7.png"
+}
+images {
+  image: "/main/assets/images/num_8.png"
+}
+images {
+  image: "/main/assets/images/num_9.png"
+}
 animations {
   id: "player_idle"
   images {
@@ -208,6 +271,45 @@ animations {
   }
   playback: PLAYBACK_ONCE_FORWARD
   fps: 20
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "eye"
+  images {
+    image: "/main/assets/images/eye_1.png"
+  }
+  images {
+    image: "/main/assets/images/eye_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "brazier"
+  images {
+    image: "/main/assets/images/brazier_1.png"
+  }
+  images {
+    image: "/main/assets/images/brazier_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "pool"
+  images {
+    image: "/main/assets/images/pool_1.png"
+  }
+  images {
+    image: "/main/assets/images/pool_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
   flip_horizontal: 0
   flip_vertical: 0
 }

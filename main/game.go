@@ -135,6 +135,60 @@ embedded_components {
   ""
 }
 embedded_components {
+  id: "snd_evolve"
+  type: "sound"
+  data: "sound: \"/main/assets/sounds/evolve.wav\"\n"
+  "looping: 0\n"
+  "group: \"sfx\"\n"
+  "gain: 0.7\n"
+  ""
+}
+embedded_components {
+  id: "snd_freeze"
+  type: "sound"
+  data: "sound: \"/main/assets/sounds/freeze.wav\"\n"
+  "looping: 0\n"
+  "group: \"sfx\"\n"
+  "gain: 0.6\n"
+  ""
+}
+embedded_components {
+  id: "snd_eshot"
+  type: "sound"
+  data: "sound: \"/main/assets/sounds/eshot.wav\"\n"
+  "looping: 0\n"
+  "group: \"sfx\"\n"
+  "gain: 0.35\n"
+  ""
+}
+embedded_components {
+  id: "snd_nuke"
+  type: "sound"
+  data: "sound: \"/main/assets/sounds/nuke.wav\"\n"
+  "looping: 0\n"
+  "group: \"sfx\"\n"
+  "gain: 0.7\n"
+  ""
+}
+embedded_components {
+  id: "snd_splash"
+  type: "sound"
+  data: "sound: \"/main/assets/sounds/splash.wav\"\n"
+  "looping: 0\n"
+  "group: \"sfx\"\n"
+  "gain: 0.35\n"
+  ""
+}
+embedded_components {
+  id: "snd_break"
+  type: "sound"
+  data: "sound: \"/main/assets/sounds/break.wav\"\n"
+  "looping: 0\n"
+  "group: \"sfx\"\n"
+  "gain: 0.5\n"
+  ""
+}
+embedded_components {
   id: "snd_music"
   type: "sound"
   data: "sound: \"/main/assets/sounds/music.wav\"\n"

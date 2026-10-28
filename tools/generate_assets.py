@@ -735,47 +735,320 @@ GLYPHS = {
 }
 
 
+def _ttf_table_checksum(data):
+    data += b"\0" * (-len(data) % 4)
+    return sum(struct.unpack(">%dI" % (len(data) // 4), data)) & 0xFFFFFFFF
+
+
 def make_font():
-    s = SCALE
-    gw, gh = 5 * s, 7 * s
-    chars = [(ord(ch), g) for ch, g in GLYPHS.items()]
-    # lowercase letters render as uppercase (except 'x', which has its own glyph)
-    for ch, g in list(GLYPHS.items()):
-        if "A" <= ch <= "Z" and ch.lower() not in GLYPHS:
-            chars.append((ord(ch.lower()), g))
-    cols = 256 // (gw + 2)
-    cell_w, cell_h = gw + 2, gh + 2
-    tex_w = 256
-    rows_n = (len(chars) + cols - 1) // cols
-    tex_h = 1
-    while tex_h < rows_n * cell_h:
-        tex_h *= 2
-    img = [[CLEAR] * tex_w for _ in range(tex_h)]
-    lines = []
-    for i, (code, g) in enumerate(chars):
-        cx, cy = (i % cols) * cell_w + 1, (i // cols) * cell_h + 1
-        for y, row in enumerate(g):
-            for x, ch in enumerate(row):
-                if ch == "#":
-                    for yy in range(s):
-                        for xx in range(s):
-                            img[cy + y * s + yy][cx + x * s + xx] = (255, 255, 255, 255)
-        lines.append("char id=%d x=%d y=%d width=%d height=%d xoffset=0 yoffset=0 xadvance=%d page=0 chnl=15"
-                     % (code, cx, cy, gw, gh, gw + s))
-    write_png(os.path.join(FONT_DIR, "pixel_font.png"), tex_w, tex_h, img)
-    with open(os.path.join(FONT_DIR, "pixel.fnt"), "w") as f:
-        f.write('info face="NightPixel" size=%d bold=0 italic=0 charset="" unicode=1 stretchH=100 '
-                'smooth=0 aa=1 padding=0,0,0,0 spacing=1,1 outline=0\n' % gh)
-        f.write("common lineHeight=%d base=%d scaleW=%d scaleH=%d pages=1 packed=0 alphaChnl=0 "
-                "redChnl=4 greenChnl=4 blueChnl=4\n" % (gh + 3 * s, gh, tex_w, tex_h))
-        f.write('page id=0 file="pixel_font.png"\n')
-        f.write("chars count=%d\n" % len(lines))
-        f.write("\n".join(lines) + "\n")
+    """Builds a TrueType font from the 5x7 pixel glyphs (one square contour run per pixel row)."""
+    PX = 128                       # font units per glyph pixel
+    UPM = 8 * PX                   # 7 rows above the baseline + 1 below
+    ASC, DESC = 7 * PX, -1 * PX
+    ADV = 6 * PX
+
+    chars = dict(GLYPHS)
+    for ch, g in GLYPHS.items():   # lowercase renders as uppercase (except 'x')
+        if "A" <= ch <= "Z" and ch.lower() not in chars:
+            chars[ch.lower()] = g
+    codes = sorted(ord(c) for c in chars)
+
+    def glyph_data(rows):
+        contours = []
+        for r, row in enumerate(rows):
+            y0, y1 = (6 - r) * PX, (7 - r) * PX
+            x = 0
+            while x < 5:
+                if row[x] == "#":
+                    x0 = x
+                    while x < 5 and row[x] == "#":
+                        x += 1
+                    # clockwise outer contour
+                    contours.append([(x0 * PX, y0), (x0 * PX, y1), (x * PX, y1), (x * PX, y0)])
+                else:
+                    x += 1
+        if not contours:
+            return b"", 0, 0, 0
+        pts = [p for c in contours for p in c]
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+        out = struct.pack(">hhhhh", len(contours), min(xs), min(ys), max(xs), max(ys))
+        end = -1
+        for c in contours:
+            end += len(c)
+            out += struct.pack(">H", end)
+        out += struct.pack(">H", 0)                       # no instructions
+        out += bytes([1] * len(pts))                      # all on-curve, long coords
+        px = py = 0
+        for x, y in pts:
+            out += struct.pack(">h", x - px)
+            px = x
+        for x, y in pts:
+            out += struct.pack(">h", y - py)
+            py = y
+        out += b"\0" * (-len(out) % 4)
+        return out, len(pts), len(contours), min(xs)
+
+    glyphs = [b""]  # .notdef (empty)
+    lsbs = [0]      # left side bearing must equal each glyph's xMin
+    max_pts = max_contours = 0
+    for c in codes:
+        data, npts, ncont, xmin = glyph_data(chars[chr(c)])
+        glyphs.append(data)
+        lsbs.append(xmin)
+        max_pts, max_contours = max(max_pts, npts), max(max_contours, ncont)
+    n = len(glyphs)
+
+    glyf, loca = b"", []
+    for g in glyphs:
+        loca.append(len(glyf))
+        glyf += g
+    loca.append(len(glyf))
+    loca_t = struct.pack(">%dI" % len(loca), *loca)
+    hmtx = b"".join(struct.pack(">Hh", ADV, lsb) for lsb in lsbs)
+
+    # cmap format 4: one segment per code + terminator
+    segs = [(c, c, (i + 1 - c) & 0xFFFF) for i, c in enumerate(codes)] + [(0xFFFF, 0xFFFF, 1)]
+    sc = len(segs)
+    sr = 2 ** int(math.log2(sc)) * 2
+    sub = struct.pack(">HHHHHHH", 4, 0, 0, sc * 2, sr, int(math.log2(sr // 2)), sc * 2 - sr)
+    sub += b"".join(struct.pack(">H", e) for _, e, _ in segs) + b"\0\0"
+    sub += b"".join(struct.pack(">H", st) for st, _, _ in segs)
+    sub += b"".join(struct.pack(">H", d) for _, _, d in segs)
+    sub += b"\0\0" * sc
+    sub = sub[:2] + struct.pack(">H", len(sub)) + sub[4:]
+    cmap = struct.pack(">HHHHI", 0, 1, 3, 1, 12) + sub
+
+    head = struct.pack(">IIIIHHqqhhhhHHhhh", 0x00010000, 0x00010000, 0, 0x5F0F3CF5, 0x000B, UPM,
+                       0, 0, 0, DESC, 5 * PX, ASC, 0, 8, 2, 1, 0)
+    hhea = struct.pack(">IhhhHhhhhhhhhhhhH", 0x00010000, ASC, DESC, 0, ADV, 0, PX, 5 * PX,
+                       1, 0, 0, 0, 0, 0, 0, 0, n)
+    maxp = struct.pack(">IHHHHHHHHHHHHHH", 0x00010000, n, max_pts, max_contours, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+    os2 = struct.pack(">HhHHHhhhhhhhhhhh", 4, ADV, 400, 5, 0, PX * 4, PX * 4, 0, PX, PX * 4, PX * 4, 0, PX * 3,
+                      PX // 2, PX * 2, 0)
+    os2 += bytes(10) + struct.pack(">IIII", 1, 0, 0, 0) + b"NSRV"
+    os2 += struct.pack(">HHHhhhHHII", 0x40, codes[0], codes[-1], ASC, DESC, 0, ASC, -DESC, 1, 0)
+    os2 += struct.pack(">hhHHH", 5 * PX, 7 * PX, 0, 32, 1)
+    post = struct.pack(">IIhhIIIII", 0x00030000, 0, -PX, PX // 2, 1, 0, 0, 0, 0)
+
+    names = {1: "NightPixel", 2: "Regular", 3: "NightPixel Regular", 4: "NightPixel", 6: "NightPixel-Regular"}
+    recs, strs = b"", b""
+    for nid, txt in names.items():
+        enc = txt.encode("utf-16-be")
+        recs += struct.pack(">HHHHHH", 3, 1, 0x409, nid, len(enc), len(strs))
+        strs += enc
+    name = struct.pack(">HHH", 0, len(names), 6 + len(recs)) + recs + strs
+
+    tables = {b"OS/2": os2, b"cmap": cmap, b"glyf": glyf, b"head": head, b"hhea": hhea,
+              b"hmtx": hmtx, b"loca": loca_t, b"maxp": maxp, b"name": name, b"post": post}
+
+    def build(tbls):
+        nt = len(tbls)
+        es = int(math.log2(nt))
+        hdr = struct.pack(">IHHHH", 0x00010000, nt, (2 ** es) * 16, es, nt * 16 - (2 ** es) * 16)
+        offset = 12 + 16 * nt
+        dir_, body = b"", b""
+        for tag in sorted(tbls):
+            data = tbls[tag]
+            dir_ += tag + struct.pack(">III", _ttf_table_checksum(data), offset + len(body), len(data))
+            body += data + b"\0" * (-len(data) % 4)
+        return hdr + dir_ + body
+
+    font = build(tables)
+    adj = (0xB1B0AFBA - _ttf_table_checksum(font)) & 0xFFFFFFFF
+    tables[b"head"] = head[:8] + struct.pack(">I", adj) + head[12:]
+    with open(os.path.join(FONT_DIR, "pixel.ttf"), "wb") as f:
+        f.write(build(tables))
+
+    for old in ("pixel.fnt", "pixel_font.png"):
+        if os.path.exists(os.path.join(FONT_DIR, old)):
+            os.remove(os.path.join(FONT_DIR, old))
     with open(os.path.join(FONT_DIR, "pixel.font"), "w") as f:
-        f.write('font: "/main/assets/fonts/pixel.fnt"\n'
-                'material: "/builtins/fonts/font-fnt.material"\n'
+        f.write('font: "/main/assets/fonts/pixel.ttf"\n'
+                'material: "/builtins/fonts/font.material"\n'
                 'size: %d\n'
-                'output_format: TYPE_BITMAP\n' % gh)
+                'antialias: 0\n'
+                'alpha: 1.0\n'
+                'outline_alpha: 1.0\n'
+                'outline_width: 3.0\n'
+                'shadow_alpha: 0.0\n'
+                'output_format: TYPE_BITMAP\n' % (8 * SCALE))
+
+
+# ---------------------------------------------------------------------------
+# Content added in the "more mechanics" update
+# ---------------------------------------------------------------------------
+
+EYE_PAL = {"k": OUTLINE, "w": hexc("f2e8e6"), "r": hexc("c83a4a"), "i": hexc("8a3ab8"),
+           "p": hexc("120818"), "f": hexc("a04a6a")}
+EYE_A = [
+    "........",
+    ".....kkk",
+    "...kkwww",
+    "..kwwwww",
+    ".kwwrwww",
+    ".kwwwwii",
+    "kwwwwiip",
+    "kwrwwiip",
+    "kwwwwiip",
+    "kwwwwwii",
+    ".kwwrwww",
+    ".kwwwwww",
+    "..kwwwww",
+    "...kkwww",
+    "..kf.kkk",
+    ".kf..kf.",
+]
+EYE_B = EYE_A[:14] + [
+    "...kf.kk",
+    "...kf.kf",
+]
+
+BRAZIER_PAL = {"k": OUTLINE, "s": hexc("7a7c88"), "S": hexc("4e505c"), "o": hexc("ff9a30"),
+               "y": hexc("ffe060"), "r": hexc("e04020")}
+BRAZIER_BASE = [
+    "..kkkkkk",
+    "..ksssss",
+    "...kSsss",
+    "....kSss",
+    ".....kss",
+    ".....kSs",
+    ".....kss",
+    "....kSss",
+    "...kSSSS",
+    "...kkkkk",
+]
+BRAZIER_A = ["........", "......r.", ".....ro.", "....rooy", "...royyy", "...royyy"] + BRAZIER_BASE
+BRAZIER_B = ["........", "........", "......r.", "....rory", "...ryyyy", "...royyy"] + BRAZIER_BASE
+
+DIGITS = {
+    "0": ["###", "#.#", "#.#", "#.#", "###"], "1": [".#.", "##.", ".#.", ".#.", "###"],
+    "2": ["###", "..#", "###", "#..", "###"], "3": ["###", "..#", ".##", "..#", "###"],
+    "4": ["#.#", "#.#", "###", "..#", "..#"], "5": ["###", "#..", "###", "..#", "###"],
+    "6": ["###", "#..", "###", "#.#", "###"], "7": ["###", "..#", ".#.", ".#.", ".#."],
+    "8": ["###", "#.#", "###", "#.#", "###"], "9": ["###", "#.#", "###", "..#", "###"],
+}
+
+
+def make_extras():
+    grid(mirror(EYE_A), EYE_PAL).save("eye_1")
+    grid(mirror(EYE_B), EYE_PAL).save("eye_2")
+    grid(mirror(BRAZIER_A), BRAZIER_PAL).save("brazier_1")
+    grid(mirror(BRAZIER_B), BRAZIER_PAL).save("brazier_2")
+
+    # damage-number digits (white, tinted at runtime)
+    for d, rows in DIGITS.items():
+        cv = Canvas(5, 7)
+        for y, r in enumerate(rows):
+            for x, ch in enumerate(r):
+                if ch == "#":
+                    cv.set(x + 1, y + 1, (255, 255, 255, 255))
+        cv.outline()
+        cv.save("num_" + d)
+
+    # enemy bullet
+    cv = Canvas(9, 9)
+    cv.circle(4, 4, 4.2, hexc("c040ff", 150))
+    cv.circle(4, 4, 3.0, hexc("e070ff"))
+    cv.circle(4, 4, 1.5, hexc("2a0838"))
+    cv.save("ebullet")
+
+    # holy water flask + pool (2 shimmer frames)
+    cv = Canvas(9, 11)
+    cv.rect(3, 0, 5, 2, hexc("c8a070"))
+    cv.circle(4, 6.5, 3.6, hexc("70b8ff"))
+    cv.circle(3, 5.5, 1.2, hexc("e8f8ff"))
+    cv.outline()
+    cv.save("flask")
+    for i in range(2):
+        random.seed(40 + i)
+        cv = Canvas(32, 32)
+        for y in range(32):
+            for x in range(32):
+                d = math.hypot(x - 15.5, y - 15.5)
+                if d <= 15.5:
+                    if d > 14:
+                        cv.set(x, y, hexc("a8e0ff", 200))
+                    elif random.random() < 0.06:
+                        cv.set(x, y, hexc("e8f8ff", 210))
+                    else:
+                        cv.set(x, y, hexc("3a8cff", 95 + (i * 20 if (x + y) % 3 == 0 else 0)))
+        cv.save("pool_%d" % (i + 1))
+
+    # axe (rotated at runtime)
+    cv = Canvas(14, 14)
+    cv.line(2, 12, 10, 4, hexc("7a4a2a"), thick=2)
+    cv.poly([(7, 1), (13, 4), (12, 9), (9, 5)], hexc("c8ccd8"))
+    cv.line(8, 1, 13, 4, hexc("ffffff"))
+    cv.outline()
+    cv.save("axe")
+
+    # cross pickup
+    cv = Canvas(14, 16)
+    cv.rect(5, 1, 8, 14, hexc("f0c840"))
+    cv.rect(1, 4, 12, 7, hexc("f0c840"))
+    cv.rect(6, 2, 6, 13, hexc("fff0a0"))
+    cv.rect(2, 5, 11, 5, hexc("fff0a0"))
+    cv.outline()
+    cv.save("cross")
+
+    # clock pickup
+    cv = Canvas(15, 15)
+    cv.circle(7, 7, 6.2, hexc("f0c840"))
+    cv.circle(7, 7, 4.8, hexc("f4f4ff"))
+    cv.line(7, 7, 7, 3.5, OUTLINE)
+    cv.line(7, 7, 9.5, 8.5, OUTLINE)
+    cv.outline()
+    cv.save("clock")
+
+    def water(c):
+        c.rect(6, 0, 9, 3, hexc("c8a070"))
+        c.circle(7.5, 9.5, 5.4, hexc("70b8ff"))
+        c.circle(5.5, 7.5, 1.6, hexc("e8f8ff"))
+
+    def axe(c):
+        c.line(2, 14, 11, 5, hexc("7a4a2a"), thick=2)
+        c.poly([(7, 1), (15, 4), (13, 11), (10, 6)], hexc("c8ccd8"))
+        c.line(8, 1, 15, 4, hexc("ffffff"))
+
+    def book(c):
+        c.rect(2, 2, 13, 14, hexc("6a3aa0"))
+        c.rect(3, 3, 12, 13, hexc("8a5ac8"))
+        c.rect(11, 3, 13, 14, hexc("f0e8d0"))
+        c.circle(7, 8, 2.5, hexc("f0c840"))
+
+    def dup(c):
+        c.rect(1, 5, 9, 13, hexc("3a8cff"))
+        c.rect(6, 1, 14, 9, hexc("60c8ff"))
+        c.rect(9, 4, 11, 6, hexc("ffffff"))
+        c.rect(4, 8, 6, 10, hexc("ffffff"))
+
+    def clover(c):
+        for cx, cy in ((5, 5), (10, 5), (5, 10), (10, 10)):
+            c.circle(cx, cy, 3.2, hexc("4ac04a"))
+        c.circle(7.5, 7.5, 1.5, hexc("8ae06a"))
+        c.line(9, 10, 13, 15, hexc("2a7a2a"), thick=2)
+
+    def crown(c):
+        c.poly([(1, 5), (4.5, 9), (7.5, 2), (10.5, 9), (14, 5), (13, 13), (2, 13)], hexc("f0c840"))
+        c.rect(2, 11, 13, 13, hexc("c89a20"))
+        c.set(7, 6, hexc("e83a4a"))
+        c.set(4, 11, hexc("3a8cff"))
+        c.set(11, 11, hexc("3a8cff"))
+
+    for name, fn in (("icon_water", water), ("icon_axe", axe), ("icon_area", book), ("icon_amount", dup),
+                     ("icon_luck", clover), ("icon_growth", crown)):
+        icon(name, fn)
+
+
+def make_extra_sounds():
+    write_wav("evolve", mix(seq(*[tone(0.06, note_freq(n), None, "pulse", 0.3, curve=0.3)
+                                  for n in (60, 64, 67, 71, 72, 76, 79, 83, 84, 88)], tone(0.6, note_freq(96), None, "tri", 0.3)),
+                            noise(1.2, 0.05, 1, 0.2, 31)))
+    write_wav("freeze", seq(*[tone(0.05, note_freq(n), None, "tri", 0.3, curve=0.5) for n in (96, 91, 88, 84, 79, 76, 72)]))
+    write_wav("eshot", tone(0.12, 300, 520, "pulse", 0.18, curve=1.5))
+    write_wav("nuke", mix(noise(1.0, 0.7, 2.0, 0.6, 41), tone(0.8, 120, 30, "square", 0.3)))
+    write_wav("splash", mix(noise(0.25, 0.35, 2, 0.5, 43), tone(0.2, 600, 200, "sine", 0.2)))
+    write_wav("break", mix(noise(0.2, 0.5, 2, 0.3, 47), tone(0.15, 900, 300, "square", 0.15)))
 
 
 # ---------------------------------------------------------------------------
@@ -793,6 +1066,9 @@ ANIMATIONS = [
     ("ogre", ["ogre_1", "ogre_2"], 3, "PLAYBACK_LOOP_FORWARD"),
     ("puff", ["puff_1", "puff_2", "puff_3"], 15, "PLAYBACK_ONCE_FORWARD"),
     ("spark", ["spark_1", "spark_2"], 20, "PLAYBACK_ONCE_FORWARD"),
+    ("eye", ["eye_1", "eye_2"], 4, "PLAYBACK_LOOP_FORWARD"),
+    ("brazier", ["brazier_1", "brazier_2"], 6, "PLAYBACK_LOOP_FORWARD"),
+    ("pool", ["pool_1", "pool_2"], 4, "PLAYBACK_LOOP_FORWARD"),
 ]
 SINGLE_IMAGES = [
     "bolt", "knife", "orb", "aura", "lightning", "pixel", "shadow",
@@ -800,7 +1076,9 @@ SINGLE_IMAGES = [
     "ground_1", "ground_2", "ground_3", "ground_4",
     "icon_bolt", "icon_knife", "icon_aura", "icon_orb", "icon_lightning", "icon_might",
     "icon_armor", "icon_heart", "icon_speed", "icon_cooldown", "icon_magnet", "icon_regen", "icon_chicken",
-]
+    "icon_water", "icon_axe", "icon_area", "icon_amount", "icon_luck", "icon_growth",
+    "ebullet", "flask", "axe", "cross", "clock",
+] + ["num_%d" % i for i in range(10)]
 
 
 def write_atlas():
@@ -980,9 +1258,11 @@ def main():
     make_pickups()
     make_icons()
     make_ground()
+    make_extras()
     write_atlas()
     make_font()
     make_sounds()
+    make_extra_sounds()
     print("assets generated in", os.path.join(ROOT, "main", "assets"))
 
 
