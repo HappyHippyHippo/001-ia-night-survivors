@@ -1,0 +1,29 @@
+script: "/main/hud/hud.gui_script"
+fonts {
+  name: "main"
+  font: "/main/assets/fonts/pixel.font"
+}
+textures {
+  name: "game"
+  texture: "/main/assets/game.atlas"
+}
+nodes {
+  position {
+    x: -500.0
+    y: -500.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "TEMPLATE"
+  font: "main"
+  id: "text_template"
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  enabled: false
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+max_nodes: 512

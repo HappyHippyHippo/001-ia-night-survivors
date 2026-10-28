@@ -1,0 +1,330 @@
+-- HUD, level-up picker and full-screen overlays. All nodes are built in code.
+local W, H = 960, 540
+
+local SHADOW = vmath.vector4(0.06, 0.03, 0.1, 1)
+local WHITE = vmath.vector4(1, 1, 1, 1)
+local GRAY = vmath.vector4(0.72, 0.7, 0.8, 1)
+local GOLD = vmath.vector4(1, 0.84, 0.3, 1)
+local RED = vmath.vector4(0.9, 0.2, 0.25, 1)
+local DIM = vmath.vector4(0.03, 0.02, 0.06, 0.7)
+local PANEL = vmath.vector4(0.13, 0.08, 0.2, 0.95)
+local BORDER = vmath.vector4(0.4, 0.3, 0.55, 1)
+
+local MSG = {
+	hud = hash("hud"), inventory = hash("inventory"), banner = hash("banner"),
+	show_levelup = hash("show_levelup"), hide_levelup = hash("hide_levelup"),
+	show_title = hash("show_title"), show_pause = hash("show_pause"), hide_pause = hash("hide_pause"),
+	show_end = hash("show_end"), hide_screens = hash("hide_screens"),
+}
+local IN = {
+	up = hash("up"), down = hash("down"), confirm = hash("confirm"), touch = hash("touch"),
+	[hash("choose1")] = 1, [hash("choose2")] = 2, [hash("choose3")] = 3,
+}
+
+local function v3(x, y) return vmath.vector3(x, y, 0) end
+
+local function fmt_time(t)
+	t = math.floor(t)
+	return string.format("%02d:%02d", math.floor(t / 60), t % 60)
+end
+
+-- group helpers: a group is a flat list of nodes toggled together
+local function add(group, node)
+	group[#group + 1] = node
+	return node
+end
+
+local function show(group, on)
+	for _, n in ipairs(group) do gui.set_enabled(n, on) end
+end
+
+local function box(self, group, x, y, w, h, color, pivot)
+	local n = gui.new_box_node(v3(x, y), v3(w, h, 0))
+	gui.set_color(n, color)
+	gui.set_pivot(n, pivot or gui.PIVOT_CENTER)
+	return add(group, n)
+end
+
+-- text with a hard drop shadow (pixel font has no outline)
+local function text(self, group, x, y, str, scale, color, pivot)
+	scale = scale or 1
+	local t = {}
+	for i, col in ipairs({ SHADOW, color or WHITE }) do
+		local n = gui.clone(self.template)
+		local off = i == 1 and 3 * scale or 0
+		gui.set_enabled(n, true)
+		gui.set_position(n, v3(x + off, y - off))
+		gui.set_text(n, str)
+		gui.set_scale(n, vmath.vector3(scale, scale, 1))
+		gui.set_pivot(n, pivot or gui.PIVOT_CENTER)
+		gui.set_color(n, col)
+		t[i] = add(group, n)
+	end
+	t.sh, t.n = t[1], t[2]
+	return t
+end
+
+local function set_text(t, str)
+	gui.set_text(t.sh, str)
+	gui.set_text(t.n, str)
+end
+
+local function blink(t)
+	for _, n in ipairs({ t.sh, t.n }) do
+		gui.animate(n, "color.w", 0.15, gui.EASING_INOUTSINE, 0.7, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	end
+end
+
+---------------------------------------------------------------------------
+
+local function build_hud(self)
+	local g = {}
+	self.hud = g
+	box(self, g, W / 2, H - 12, W, 24, vmath.vector4(0.05, 0.04, 0.1, 0.9))
+	self.xp_fill = box(self, g, 0, H - 12, 0, 20, vmath.vector4(0.25, 0.55, 1, 1), gui.PIVOT_W)
+	self.level_text = text(self, g, W - 10, H - 12, "LV 1", 1, WHITE, gui.PIVOT_E)
+	self.timer_text = text(self, g, W / 2, H - 54, "00:00", 2, WHITE)
+	self.kills_text = text(self, g, W - 14, H - 48, "KILLS 0", 1, GRAY, gui.PIVOT_E)
+
+	box(self, g, 16, H - 48, 228, 26, vmath.vector4(0.05, 0.04, 0.1, 0.9), gui.PIVOT_W)
+	self.hp_back = box(self, g, 20, H - 48, 220, 18, vmath.vector4(0.3, 0.06, 0.1, 1), gui.PIVOT_W)
+	self.hp_fill = box(self, g, 20, H - 48, 220, 18, RED, gui.PIVOT_W)
+	self.hp_text = text(self, g, 130, H - 48, "100/100", 1, WHITE)
+
+	self.slots = {}
+	for i = 1, 11 do
+		local row = i <= 5 and 0 or 1
+		local col = i <= 5 and (i - 1) or (i - 6)
+		local x, y = 46 + col * 60, H - 104 - row * 62
+		local frame = box(self, g, x, y, 58, 58, vmath.vector4(0.05, 0.04, 0.1, 0.6))
+		local icon = box(self, g, x, y, 54, 54, WHITE)
+		gui.set_texture(icon, "game")
+		local lv = text(self, g, x + 26, y - 18, "", 1, GOLD, gui.PIVOT_E)
+		self.slots[i] = { frame = frame, icon = icon, lv = lv }
+	end
+end
+
+local function build_banner(self)
+	self.banner_group = {}
+	self.banner = text(self, self.banner_group, W / 2, H - 140, "", 2, GOLD)
+	show(self.banner_group, false)
+end
+
+local function build_levelup(self)
+	local g = {}
+	self.levelup = g
+	box(self, g, W / 2, H / 2, W * 3, H * 3, DIM)
+	text(self, g, W / 2, 470, "LEVEL UP!", 3, GOLD)
+	self.cards = {}
+	for i = 1, 3 do
+		local y = 360 - (i - 1) * 108
+		local c = { nodes = {} }
+		local cg = c.nodes
+		c.border = box(self, cg, W / 2, y, 724, 96, BORDER)
+		box(self, cg, W / 2, y, 716, 88, PANEL)
+		text(self, cg, 140, y, tostring(i), 1, GRAY)
+		box(self, cg, 192, y, 64, 64, vmath.vector4(0.05, 0.04, 0.1, 1))
+		c.icon = box(self, cg, 192, y, 54, 54, WHITE)
+		gui.set_texture(c.icon, "game")
+		c.name = text(self, cg, 238, y + 18, "", 1, WHITE, gui.PIVOT_W)
+		c.tag = text(self, cg, 826, y + 18, "", 1, GOLD, gui.PIVOT_E)
+		c.desc = text(self, cg, 238, y - 18, "", 1, GRAY, gui.PIVOT_W)
+		for _, n in ipairs(cg) do add(g, n) end
+		self.cards[i] = c
+	end
+	text(self, g, W / 2, 46, "1 2 3 / ARROWS + ENTER / CLICK", 1, GRAY)
+	show(g, false)
+end
+
+local function build_title(self)
+	local g = {}
+	self.title = g
+	box(self, g, W / 2, H / 2, W * 3, H * 3, vmath.vector4(0.03, 0.02, 0.06, 0.55))
+	text(self, g, W / 2, 400, "NIGHT SURVIVORS", 3, RED)
+	text(self, g, W / 2, 330, "SURVIVE THE HORDE UNTIL DAWN (10:00)", 1, GOLD)
+	text(self, g, W / 2, 240, "WASD / ARROWS - MOVE", 1, WHITE)
+	text(self, g, W / 2, 210, "WEAPONS FIRE ON THEIR OWN", 1, WHITE)
+	text(self, g, W / 2, 180, "COLLECT GEMS TO LEVEL UP", 1, WHITE)
+	text(self, g, W / 2, 150, "P - PAUSE    M - MUTE", 1, GRAY)
+	self.start_text = text(self, g, W / 2, 80, "PRESS ENTER TO START", 1, GOLD)
+	blink(self.start_text)
+	show(g, false)
+end
+
+local function build_pause(self)
+	local g = {}
+	self.pause = g
+	box(self, g, W / 2, H / 2, W * 3, H * 3, DIM)
+	text(self, g, W / 2, 300, "PAUSED", 3, WHITE)
+	text(self, g, W / 2, 220, "PRESS P TO RESUME", 1, GRAY)
+	show(g, false)
+end
+
+local function build_end(self)
+	local g = {}
+	self.ending = g
+	box(self, g, W / 2, H / 2, W * 3, H * 3, DIM)
+	self.end_title = text(self, g, W / 2, 400, "", 3, RED)
+	self.end_sub = text(self, g, W / 2, 330, "", 1, GRAY)
+	self.end_time = text(self, g, W / 2, 270, "", 1, WHITE)
+	self.end_level = text(self, g, W / 2, 240, "", 1, WHITE)
+	self.end_kills = text(self, g, W / 2, 210, "", 1, WHITE)
+	local again = text(self, g, W / 2, 100, "PRESS ENTER TO PLAY AGAIN", 1, GOLD)
+	blink(again)
+	show(g, false)
+end
+
+---------------------------------------------------------------------------
+
+local function select_card(self, i)
+	if not self.choices or not self.choices[i] then return end
+	self.sel = i
+	for k, c in ipairs(self.cards) do
+		gui.set_color(c.border, k == i and GOLD or BORDER)
+	end
+end
+
+local function confirm_card(self, i)
+	if self.lock > 0 or not self.choices or not self.choices[i] then return end
+	self.choices = nil
+	msg.post("/game#game", "choose", { index = i })
+end
+
+local function show_levelup(self, choices)
+	self.choices = choices
+	self.lock = 0.35
+	show(self.levelup, true)
+	for i, c in ipairs(self.cards) do
+		local ch = choices[i]
+		if ch then
+			set_text(c.name, ch.name)
+			set_text(c.tag, ch.tag)
+			set_text(c.desc, ch.desc)
+			gui.play_flipbook(c.icon, ch.icon)
+		else
+			show(c.nodes, false)
+		end
+	end
+	self.sel = nil
+	select_card(self, 1)
+end
+
+local function set_inventory(self, items)
+	local weapons, passives = {}, {}
+	for _, it in ipairs(items) do
+		if it.kind == "weapon" then weapons[#weapons + 1] = it else passives[#passives + 1] = it end
+	end
+	for i, slot in ipairs(self.slots) do
+		local it = i <= 5 and weapons[i] or passives[i - 5]
+		gui.set_enabled(slot.frame, it ~= nil)
+		gui.set_enabled(slot.icon, it ~= nil)
+		gui.set_enabled(slot.lv.n, it ~= nil)
+		gui.set_enabled(slot.lv.sh, it ~= nil)
+		if it then
+			gui.play_flipbook(slot.icon, it.icon)
+			set_text(slot.lv, tostring(it.level))
+		end
+	end
+end
+
+---------------------------------------------------------------------------
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	self.template = gui.get_node("text_template")
+	self.lock = 0
+	build_hud(self)
+	build_banner(self)
+	build_levelup(self)
+	build_title(self)
+	build_pause(self)
+	build_end(self)
+	set_inventory(self, {})
+	show(self.hud, false)
+end
+
+function update(self, dt)
+	if self.lock > 0 then self.lock = self.lock - dt end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == MSG.hud then
+		local hp_ratio = math.max(0, math.min(1, message.hp / message.max_hp))
+		gui.set_size(self.hp_fill, v3(220 * hp_ratio, 18))
+		set_text(self.hp_text, string.format("%d/%d", math.ceil(message.hp), message.max_hp))
+		gui.set_size(self.xp_fill, v3(W * math.min(1, message.xp / message.xp_next), 20))
+		set_text(self.level_text, "LV " .. message.level)
+		set_text(self.timer_text, fmt_time(message.time))
+		set_text(self.kills_text, "KILLS " .. message.kills)
+	elseif message_id == MSG.inventory then
+		set_inventory(self, message.items)
+	elseif message_id == MSG.banner then
+		show(self.banner_group, true)
+		set_text(self.banner, message.text)
+		for _, n in ipairs({ self.banner.n, self.banner.sh }) do
+			local c = gui.get_color(n)
+			c.w = 1
+			gui.set_color(n, c)
+			gui.animate(n, "color.w", 0, gui.EASING_INQUAD, 0.8, 1.8)
+		end
+	elseif message_id == MSG.show_levelup then
+		show_levelup(self, message.choices)
+	elseif message_id == MSG.hide_levelup then
+		show(self.levelup, false)
+		self.choices = nil
+	elseif message_id == MSG.show_title then
+		show(self.title, true)
+	elseif message_id == MSG.show_pause then
+		show(self.pause, true)
+	elseif message_id == MSG.hide_pause then
+		show(self.pause, false)
+	elseif message_id == MSG.show_end then
+		show(self.levelup, false)
+		show(self.ending, true)
+		if message.victory then
+			set_text(self.end_title, "DAWN BREAKS!")
+			gui.set_color(self.end_title.n, GOLD)
+			set_text(self.end_sub, "THE NIGHT IS OVER. YOU SURVIVED!")
+		else
+			set_text(self.end_title, "YOU DIED")
+			gui.set_color(self.end_title.n, RED)
+			set_text(self.end_sub, "THE NIGHT CLAIMS ANOTHER SOUL")
+		end
+		set_text(self.end_time, "SURVIVED  " .. fmt_time(message.time))
+		set_text(self.end_level, "LEVEL  " .. message.level)
+		set_text(self.end_kills, "ENEMIES SLAIN  " .. message.kills)
+	elseif message_id == MSG.hide_screens then
+		show(self.title, false)
+		show(self.ending, false)
+		show(self.pause, false)
+		show(self.levelup, false)
+		show(self.hud, true)
+		set_inventory(self, {})
+	end
+end
+
+function on_input(self, action_id, action)
+	if not self.choices then return false end
+	if action_id == IN.up and action.pressed then
+		select_card(self, math.max(1, (self.sel or 1) - 1))
+	elseif action_id == IN.down and action.pressed then
+		select_card(self, math.min(#self.choices, (self.sel or 1) + 1))
+	elseif action_id == IN.confirm and action.pressed then
+		confirm_card(self, self.sel or 1)
+		return true
+	elseif action_id and IN[action_id] and action.pressed then
+		confirm_card(self, IN[action_id])
+		return true
+	elseif action_id == nil or action_id == IN.touch then
+		for i, c in ipairs(self.cards) do
+			if self.choices and self.choices[i] and gui.pick_node(c.border, action.x, action.y) then
+				select_card(self, i)
+				if action_id == IN.touch and action.pressed then
+					confirm_card(self, i)
+				end
+			end
+		end
+		return action_id ~= nil
+	end
+	return false
+end

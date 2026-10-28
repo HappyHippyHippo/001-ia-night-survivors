@@ -1,0 +1,68 @@
+-- Fixed-height orthographic camera that follows a world position.
+-- The game script posts "follow" every frame with the player position.
+
+local VIEW_HEIGHT = 540
+
+function init(self)
+	self.tile_pred = render.predicate({ "tile" })
+	self.particle_pred = render.predicate({ "particle" })
+	self.gui_pred = render.predicate({ "gui" })
+	self.text_pred = render.predicate({ "text" })
+	self.clear_color = vmath.vector4(0.09, 0.13, 0.08, 1)
+	self.camera = vmath.vector3()
+	self.shake = 0
+end
+
+function update(self, dt)
+	local w = render.get_window_width()
+	local h = render.get_window_height()
+
+	render.set_depth_mask(true)
+	render.set_stencil_mask(0xff)
+	render.clear({ [graphics.BUFFER_TYPE_COLOR0_BIT] = self.clear_color, [graphics.BUFFER_TYPE_DEPTH_BIT] = 1, [graphics.BUFFER_TYPE_STENCIL_BIT] = 0 })
+	render.set_viewport(0, 0, w, h)
+
+	-- world
+	local vh = VIEW_HEIGHT
+	local vw = vh * w / h
+	local cx, cy = self.camera.x, self.camera.y
+	if self.shake > 0 then
+		cx = cx + (math.random() - 0.5) * self.shake
+		cy = cy + (math.random() - 0.5) * self.shake
+		self.shake = math.max(0, self.shake - 60 * (dt or 0.016))
+	end
+	-- snap to whole screen pixels to keep pixel art crisp
+	local px = vh / h
+	cx = math.floor(cx / px + 0.5) * px
+	cy = math.floor(cy / px + 0.5) * px
+	local proj = vmath.matrix4_orthographic(cx - vw / 2, cx + vw / 2, cy - vh / 2, cy + vh / 2, -10, 10)
+	render.set_view(vmath.matrix4())
+	render.set_projection(proj)
+	render.set_depth_mask(false)
+	render.disable_state(graphics.STATE_DEPTH_TEST)
+	render.disable_state(graphics.STATE_STENCIL_TEST)
+	render.disable_state(graphics.STATE_CULL_FACE)
+	render.enable_state(graphics.STATE_BLEND)
+	render.set_blend_func(graphics.BLEND_FACTOR_SRC_ALPHA, graphics.BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+	render.draw(self.tile_pred, { frustum = proj })
+	render.draw(self.particle_pred, { frustum = proj })
+	render.draw_debug3d()
+
+	-- gui
+	render.set_view(vmath.matrix4())
+	render.set_projection(vmath.matrix4_orthographic(0, w, 0, h, -1, 1))
+	render.enable_state(graphics.STATE_STENCIL_TEST)
+	render.draw(self.gui_pred)
+	render.draw(self.text_pred)
+	render.disable_state(graphics.STATE_STENCIL_TEST)
+end
+
+function on_message(self, message_id, message)
+	if message_id == hash("follow") then
+		self.camera = message.position
+	elseif message_id == hash("shake") then
+		self.shake = math.max(self.shake, message.amount)
+	elseif message_id == hash("clear_color") then
+		self.clear_color = message.color
+	end
+end

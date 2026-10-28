@@ -1,0 +1,47 @@
+[bootstrap]
+main_collection = /main/main.collectionc
+render = /main/render/game.renderc
+
+[script]
+shared_state = 1
+
+[display]
+width = 960
+height = 540
+high_dpi = 0
+vsync = 1
+update_frequency = 0
+fullscreen = 0
+
+[project]
+title = Night Survivors
+version = 1.0
+custom_resources = 
+
+[input]
+game_binding = /input/game.input_bindingc
+use_accelerometer = 0
+
+[graphics]
+default_texture_min_filter = nearest
+default_texture_mag_filter = nearest
+
+[collection]
+max_instances = 4096
+
+[sprite]
+max_count = 4096
+
+[factory]
+max_count = 4096
+
+[sound]
+gain = 1.0
+max_sound_instances = 64
+
+[gui]
+max_count = 64
+
+[physics]
+max_collision_object_count = 16
+debug = 0

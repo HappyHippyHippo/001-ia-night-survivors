@@ -1,0 +1,4 @@
+font: "/main/assets/fonts/pixel.fnt"
+material: "/builtins/fonts/font-fnt.material"
+size: 21
+output_format: TYPE_BITMAP

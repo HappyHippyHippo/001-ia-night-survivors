@@ -1,0 +1,216 @@
+images {
+  image: "/main/assets/images/bolt.png"
+}
+images {
+  image: "/main/assets/images/knife.png"
+}
+images {
+  image: "/main/assets/images/orb.png"
+}
+images {
+  image: "/main/assets/images/aura.png"
+}
+images {
+  image: "/main/assets/images/lightning.png"
+}
+images {
+  image: "/main/assets/images/pixel.png"
+}
+images {
+  image: "/main/assets/images/shadow.png"
+}
+images {
+  image: "/main/assets/images/gem_blue.png"
+}
+images {
+  image: "/main/assets/images/gem_green.png"
+}
+images {
+  image: "/main/assets/images/gem_red.png"
+}
+images {
+  image: "/main/assets/images/chicken.png"
+}
+images {
+  image: "/main/assets/images/magnet.png"
+}
+images {
+  image: "/main/assets/images/chest.png"
+}
+images {
+  image: "/main/assets/images/ground_1.png"
+}
+images {
+  image: "/main/assets/images/ground_2.png"
+}
+images {
+  image: "/main/assets/images/ground_3.png"
+}
+images {
+  image: "/main/assets/images/ground_4.png"
+}
+images {
+  image: "/main/assets/images/icon_bolt.png"
+}
+images {
+  image: "/main/assets/images/icon_knife.png"
+}
+images {
+  image: "/main/assets/images/icon_aura.png"
+}
+images {
+  image: "/main/assets/images/icon_orb.png"
+}
+images {
+  image: "/main/assets/images/icon_lightning.png"
+}
+images {
+  image: "/main/assets/images/icon_might.png"
+}
+images {
+  image: "/main/assets/images/icon_armor.png"
+}
+images {
+  image: "/main/assets/images/icon_heart.png"
+}
+images {
+  image: "/main/assets/images/icon_speed.png"
+}
+images {
+  image: "/main/assets/images/icon_cooldown.png"
+}
+images {
+  image: "/main/assets/images/icon_magnet.png"
+}
+images {
+  image: "/main/assets/images/icon_regen.png"
+}
+images {
+  image: "/main/assets/images/icon_chicken.png"
+}
+animations {
+  id: "player_idle"
+  images {
+    image: "/main/assets/images/player_1.png"
+  }
+  playback: PLAYBACK_NONE
+  fps: 1
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "player_walk"
+  images {
+    image: "/main/assets/images/player_1.png"
+  }
+  images {
+    image: "/main/assets/images/player_3.png"
+  }
+  images {
+    image: "/main/assets/images/player_2.png"
+  }
+  images {
+    image: "/main/assets/images/player_3.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 8
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "bat"
+  images {
+    image: "/main/assets/images/bat_1.png"
+  }
+  images {
+    image: "/main/assets/images/bat_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 8
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "zombie"
+  images {
+    image: "/main/assets/images/zombie_1.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 3
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "skeleton"
+  images {
+    image: "/main/assets/images/skeleton_1.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 5
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ghost"
+  images {
+    image: "/main/assets/images/ghost_1.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ogre"
+  images {
+    image: "/main/assets/images/ogre_1.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 3
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "puff"
+  images {
+    image: "/main/assets/images/puff_1.png"
+  }
+  images {
+    image: "/main/assets/images/puff_2.png"
+  }
+  images {
+    image: "/main/assets/images/puff_3.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 15
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "spark"
+  images {
+    image: "/main/assets/images/spark_1.png"
+  }
+  images {
+    image: "/main/assets/images/spark_2.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 20
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+margin: 0
+extrude_borders: 2
+inner_padding: 0

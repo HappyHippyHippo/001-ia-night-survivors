@@ -1,0 +1,25 @@
+name: "main"
+instances {
+  id: "game"
+  prototype: "/main/game.go"
+}
+instances {
+  id: "player"
+  prototype: "/main/entity.go"
+  position {
+    z: 0.5
+  }
+}
+instances {
+  id: "player_shadow"
+  prototype: "/main/entity.go"
+}
+instances {
+  id: "aura"
+  prototype: "/main/entity.go"
+}
+instances {
+  id: "hud"
+  prototype: "/main/hud/hud.go"
+}
+scale_along_z: 0
