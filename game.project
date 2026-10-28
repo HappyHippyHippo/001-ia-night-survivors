@@ -6,9 +6,9 @@ render = /main/render/game.renderc
 shared_state = 1
 
 [display]
-width = 960
-height = 540
-high_dpi = 0
+width = 1440
+height = 810
+high_dpi = 1
 vsync = 1
 update_frequency = 0
 fullscreen = 0

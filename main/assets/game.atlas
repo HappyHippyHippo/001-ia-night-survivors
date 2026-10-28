@@ -1,17 +1,5 @@
 images {
-  image: "/main/assets/images/bolt.png"
-}
-images {
   image: "/main/assets/images/knife.png"
-}
-images {
-  image: "/main/assets/images/orb.png"
-}
-images {
-  image: "/main/assets/images/aura.png"
-}
-images {
-  image: "/main/assets/images/lightning.png"
 }
 images {
   image: "/main/assets/images/pixel.png"
@@ -20,22 +8,7 @@ images {
   image: "/main/assets/images/shadow.png"
 }
 images {
-  image: "/main/assets/images/gem_blue.png"
-}
-images {
-  image: "/main/assets/images/gem_green.png"
-}
-images {
-  image: "/main/assets/images/gem_red.png"
-}
-images {
-  image: "/main/assets/images/chicken.png"
-}
-images {
-  image: "/main/assets/images/magnet.png"
-}
-images {
-  image: "/main/assets/images/chest.png"
+  image: "/main/assets/images/axe.png"
 }
 images {
   image: "/main/assets/images/ground_1.png"
@@ -107,21 +80,6 @@ images {
   image: "/main/assets/images/icon_growth.png"
 }
 images {
-  image: "/main/assets/images/ebullet.png"
-}
-images {
-  image: "/main/assets/images/flask.png"
-}
-images {
-  image: "/main/assets/images/axe.png"
-}
-images {
-  image: "/main/assets/images/cross.png"
-}
-images {
-  image: "/main/assets/images/clock.png"
-}
-images {
   image: "/main/assets/images/num_0.png"
 }
 images {
@@ -152,28 +110,18 @@ images {
   image: "/main/assets/images/num_9.png"
 }
 animations {
-  id: "player_idle"
+  id: "player_walk_down"
   images {
-    image: "/main/assets/images/player_1.png"
-  }
-  playback: PLAYBACK_NONE
-  fps: 1
-  flip_horizontal: 0
-  flip_vertical: 0
-}
-animations {
-  id: "player_walk"
-  images {
-    image: "/main/assets/images/player_1.png"
+    image: "/main/assets/images/player_walk_down_1.png"
   }
   images {
-    image: "/main/assets/images/player_3.png"
+    image: "/main/assets/images/player_walk_down_2.png"
   }
   images {
-    image: "/main/assets/images/player_2.png"
+    image: "/main/assets/images/player_walk_down_3.png"
   }
   images {
-    image: "/main/assets/images/player_3.png"
+    image: "/main/assets/images/player_walk_down_4.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
   fps: 8
@@ -181,12 +129,31 @@ animations {
   flip_vertical: 0
 }
 animations {
-  id: "bat"
+  id: "player_idle_down"
   images {
-    image: "/main/assets/images/bat_1.png"
+    image: "/main/assets/images/player_idle_down_1.png"
   }
   images {
-    image: "/main/assets/images/bat_2.png"
+    image: "/main/assets/images/player_idle_down_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 2
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "player_walk_up"
+  images {
+    image: "/main/assets/images/player_walk_up_1.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_up_2.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_up_3.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_up_4.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
   fps: 8
@@ -194,38 +161,127 @@ animations {
   flip_vertical: 0
 }
 animations {
-  id: "zombie"
+  id: "player_idle_up"
   images {
-    image: "/main/assets/images/zombie_1.png"
+    image: "/main/assets/images/player_idle_up_1.png"
   }
   images {
-    image: "/main/assets/images/zombie_2.png"
+    image: "/main/assets/images/player_idle_up_2.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 3
+  fps: 2
   flip_horizontal: 0
   flip_vertical: 0
 }
 animations {
-  id: "skeleton"
+  id: "player_walk_down_side"
   images {
-    image: "/main/assets/images/skeleton_1.png"
+    image: "/main/assets/images/player_walk_down_side_1.png"
   }
   images {
-    image: "/main/assets/images/skeleton_2.png"
+    image: "/main/assets/images/player_walk_down_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_down_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_down_side_4.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 5
+  fps: 8
   flip_horizontal: 0
   flip_vertical: 0
 }
 animations {
-  id: "ghost"
+  id: "player_walk_up_side"
   images {
-    image: "/main/assets/images/ghost_1.png"
+    image: "/main/assets/images/player_walk_up_side_1.png"
   }
   images {
-    image: "/main/assets/images/ghost_2.png"
+    image: "/main/assets/images/player_walk_up_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_up_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_up_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 8
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "player_idle_down_side"
+  images {
+    image: "/main/assets/images/player_idle_down_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/player_idle_down_side_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 2
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "player_idle_up_side"
+  images {
+    image: "/main/assets/images/player_idle_up_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/player_idle_up_side_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 2
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "player_walk_side"
+  images {
+    image: "/main/assets/images/player_walk_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/player_walk_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 8
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "player_idle_side"
+  images {
+    image: "/main/assets/images/player_idle_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/player_idle_side_2.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 2
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "zombie_down"
+  images {
+    image: "/main/assets/images/zombie_down_1.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_down_2.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_down_3.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_down_4.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
   fps: 4
@@ -233,15 +289,651 @@ animations {
   flip_vertical: 0
 }
 animations {
-  id: "ogre"
+  id: "zombie_up"
   images {
-    image: "/main/assets/images/ogre_1.png"
+    image: "/main/assets/images/zombie_up_1.png"
   }
   images {
-    image: "/main/assets/images/ogre_2.png"
+    image: "/main/assets/images/zombie_up_2.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_up_3.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_up_4.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 3
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "zombie_down_side"
+  images {
+    image: "/main/assets/images/zombie_down_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_down_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_down_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_down_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "zombie_up_side"
+  images {
+    image: "/main/assets/images/zombie_up_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_up_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_up_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_up_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "zombie_side"
+  images {
+    image: "/main/assets/images/zombie_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/zombie_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "skeleton_down"
+  images {
+    image: "/main/assets/images/skeleton_down_1.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_down_2.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_down_3.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_down_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 7
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "skeleton_up"
+  images {
+    image: "/main/assets/images/skeleton_up_1.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_up_2.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_up_3.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_up_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 7
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "skeleton_down_side"
+  images {
+    image: "/main/assets/images/skeleton_down_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_down_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_down_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_down_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 7
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "skeleton_up_side"
+  images {
+    image: "/main/assets/images/skeleton_up_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_up_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_up_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_up_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 7
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "skeleton_side"
+  images {
+    image: "/main/assets/images/skeleton_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/skeleton_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 7
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ogre_down"
+  images {
+    image: "/main/assets/images/ogre_down_1.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_down_2.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_down_3.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_down_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ogre_up"
+  images {
+    image: "/main/assets/images/ogre_up_1.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_up_2.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_up_3.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_up_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ogre_down_side"
+  images {
+    image: "/main/assets/images/ogre_down_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_down_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_down_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_down_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ogre_up_side"
+  images {
+    image: "/main/assets/images/ogre_up_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_up_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_up_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_up_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ogre_side"
+  images {
+    image: "/main/assets/images/ogre_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/ogre_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 4
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "bat_down"
+  images {
+    image: "/main/assets/images/bat_down_1.png"
+  }
+  images {
+    image: "/main/assets/images/bat_down_2.png"
+  }
+  images {
+    image: "/main/assets/images/bat_down_3.png"
+  }
+  images {
+    image: "/main/assets/images/bat_down_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "bat_up"
+  images {
+    image: "/main/assets/images/bat_up_1.png"
+  }
+  images {
+    image: "/main/assets/images/bat_up_2.png"
+  }
+  images {
+    image: "/main/assets/images/bat_up_3.png"
+  }
+  images {
+    image: "/main/assets/images/bat_up_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "bat_side"
+  images {
+    image: "/main/assets/images/bat_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/bat_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/bat_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/bat_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "bat_down_side"
+  images {
+    image: "/main/assets/images/bat_down_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/bat_down_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/bat_down_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/bat_down_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "bat_up_side"
+  images {
+    image: "/main/assets/images/bat_up_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/bat_up_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/bat_up_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/bat_up_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ghost_down"
+  images {
+    image: "/main/assets/images/ghost_down_1.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_down_2.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_down_3.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_down_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ghost_down_side"
+  images {
+    image: "/main/assets/images/ghost_down_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_down_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_down_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_down_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ghost_side"
+  images {
+    image: "/main/assets/images/ghost_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ghost_up_side"
+  images {
+    image: "/main/assets/images/ghost_up_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_up_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_up_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_up_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ghost_up"
+  images {
+    image: "/main/assets/images/ghost_up_1.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_up_2.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_up_3.png"
+  }
+  images {
+    image: "/main/assets/images/ghost_up_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "eye_down"
+  images {
+    image: "/main/assets/images/eye_down_1.png"
+  }
+  images {
+    image: "/main/assets/images/eye_down_2.png"
+  }
+  images {
+    image: "/main/assets/images/eye_down_3.png"
+  }
+  images {
+    image: "/main/assets/images/eye_down_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "eye_down_side"
+  images {
+    image: "/main/assets/images/eye_down_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/eye_down_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/eye_down_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/eye_down_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "eye_side"
+  images {
+    image: "/main/assets/images/eye_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/eye_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/eye_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/eye_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "eye_up_side"
+  images {
+    image: "/main/assets/images/eye_up_side_1.png"
+  }
+  images {
+    image: "/main/assets/images/eye_up_side_2.png"
+  }
+  images {
+    image: "/main/assets/images/eye_up_side_3.png"
+  }
+  images {
+    image: "/main/assets/images/eye_up_side_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "eye_up"
+  images {
+    image: "/main/assets/images/eye_up_1.png"
+  }
+  images {
+    image: "/main/assets/images/eye_up_2.png"
+  }
+  images {
+    image: "/main/assets/images/eye_up_3.png"
+  }
+  images {
+    image: "/main/assets/images/eye_up_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "brazier"
+  images {
+    image: "/main/assets/images/brazier_1.png"
+  }
+  images {
+    image: "/main/assets/images/brazier_2.png"
+  }
+  images {
+    image: "/main/assets/images/brazier_3.png"
+  }
+  images {
+    image: "/main/assets/images/brazier_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 8
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "bolt"
+  images {
+    image: "/main/assets/images/bolt_1.png"
+  }
+  images {
+    image: "/main/assets/images/bolt_2.png"
+  }
+  images {
+    image: "/main/assets/images/bolt_3.png"
+  }
+  images {
+    image: "/main/assets/images/bolt_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 14
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "orb"
+  images {
+    image: "/main/assets/images/orb_1.png"
+  }
+  images {
+    image: "/main/assets/images/orb_2.png"
+  }
+  images {
+    image: "/main/assets/images/orb_3.png"
+  }
+  images {
+    image: "/main/assets/images/orb_4.png"
+  }
+  images {
+    image: "/main/assets/images/orb_5.png"
+  }
+  images {
+    image: "/main/assets/images/orb_6.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 12
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "aura"
+  images {
+    image: "/main/assets/images/aura_1.png"
+  }
+  images {
+    image: "/main/assets/images/aura_2.png"
+  }
+  images {
+    image: "/main/assets/images/aura_3.png"
+  }
+  images {
+    image: "/main/assets/images/aura_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "lightning"
+  images {
+    image: "/main/assets/images/lightning_1.png"
+  }
+  images {
+    image: "/main/assets/images/lightning_2.png"
+  }
+  images {
+    image: "/main/assets/images/lightning_3.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 18
   flip_horizontal: 0
   flip_vertical: 0
 }
@@ -256,8 +948,17 @@ animations {
   images {
     image: "/main/assets/images/puff_3.png"
   }
+  images {
+    image: "/main/assets/images/puff_4.png"
+  }
+  images {
+    image: "/main/assets/images/puff_5.png"
+  }
+  images {
+    image: "/main/assets/images/puff_6.png"
+  }
   playback: PLAYBACK_ONCE_FORWARD
-  fps: 15
+  fps: 20
   flip_horizontal: 0
   flip_vertical: 0
 }
@@ -269,34 +970,262 @@ animations {
   images {
     image: "/main/assets/images/spark_2.png"
   }
+  images {
+    image: "/main/assets/images/spark_3.png"
+  }
+  images {
+    image: "/main/assets/images/spark_4.png"
+  }
   playback: PLAYBACK_ONCE_FORWARD
-  fps: 20
+  fps: 24
   flip_horizontal: 0
   flip_vertical: 0
 }
 animations {
-  id: "eye"
+  id: "gem_blue"
   images {
-    image: "/main/assets/images/eye_1.png"
+    image: "/main/assets/images/gem_blue_1.png"
   }
   images {
-    image: "/main/assets/images/eye_2.png"
+    image: "/main/assets/images/gem_blue_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_blue_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_blue_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_blue_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_blue_2.png"
+  }
+  images {
+    image: "/main/assets/images/gem_blue_3.png"
+  }
+  images {
+    image: "/main/assets/images/gem_blue_4.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 4
+  fps: 12
   flip_horizontal: 0
   flip_vertical: 0
 }
 animations {
-  id: "brazier"
+  id: "gem_green"
   images {
-    image: "/main/assets/images/brazier_1.png"
+    image: "/main/assets/images/gem_green_1.png"
   }
   images {
-    image: "/main/assets/images/brazier_2.png"
+    image: "/main/assets/images/gem_green_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_green_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_green_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_green_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_green_2.png"
+  }
+  images {
+    image: "/main/assets/images/gem_green_3.png"
+  }
+  images {
+    image: "/main/assets/images/gem_green_4.png"
   }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 6
+  fps: 12
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "gem_red"
+  images {
+    image: "/main/assets/images/gem_red_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_red_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_red_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_red_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_red_1.png"
+  }
+  images {
+    image: "/main/assets/images/gem_red_2.png"
+  }
+  images {
+    image: "/main/assets/images/gem_red_3.png"
+  }
+  images {
+    image: "/main/assets/images/gem_red_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 12
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "chicken"
+  images {
+    image: "/main/assets/images/chicken_1.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_1.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_1.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_1.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_1.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_1.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_2.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_3.png"
+  }
+  images {
+    image: "/main/assets/images/chicken_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "magnet"
+  images {
+    image: "/main/assets/images/magnet_1.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_1.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_1.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_1.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_1.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_1.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_2.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_3.png"
+  }
+  images {
+    image: "/main/assets/images/magnet_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "chest"
+  images {
+    image: "/main/assets/images/chest_1.png"
+  }
+  images {
+    image: "/main/assets/images/chest_1.png"
+  }
+  images {
+    image: "/main/assets/images/chest_1.png"
+  }
+  images {
+    image: "/main/assets/images/chest_1.png"
+  }
+  images {
+    image: "/main/assets/images/chest_1.png"
+  }
+  images {
+    image: "/main/assets/images/chest_1.png"
+  }
+  images {
+    image: "/main/assets/images/chest_2.png"
+  }
+  images {
+    image: "/main/assets/images/chest_3.png"
+  }
+  images {
+    image: "/main/assets/images/chest_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "ebullet"
+  images {
+    image: "/main/assets/images/ebullet_1.png"
+  }
+  images {
+    image: "/main/assets/images/ebullet_2.png"
+  }
+  images {
+    image: "/main/assets/images/ebullet_3.png"
+  }
+  images {
+    image: "/main/assets/images/ebullet_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 12
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "flask"
+  images {
+    image: "/main/assets/images/flask_1.png"
+  }
+  images {
+    image: "/main/assets/images/flask_1.png"
+  }
+  images {
+    image: "/main/assets/images/flask_1.png"
+  }
+  images {
+    image: "/main/assets/images/flask_1.png"
+  }
+  images {
+    image: "/main/assets/images/flask_1.png"
+  }
+  images {
+    image: "/main/assets/images/flask_1.png"
+  }
+  images {
+    image: "/main/assets/images/flask_2.png"
+  }
+  images {
+    image: "/main/assets/images/flask_3.png"
+  }
+  images {
+    image: "/main/assets/images/flask_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
   flip_horizontal: 0
   flip_vertical: 0
 }
@@ -308,8 +1237,82 @@ animations {
   images {
     image: "/main/assets/images/pool_2.png"
   }
+  images {
+    image: "/main/assets/images/pool_3.png"
+  }
+  images {
+    image: "/main/assets/images/pool_4.png"
+  }
   playback: PLAYBACK_LOOP_FORWARD
-  fps: 4
+  fps: 6
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "cross"
+  images {
+    image: "/main/assets/images/cross_1.png"
+  }
+  images {
+    image: "/main/assets/images/cross_1.png"
+  }
+  images {
+    image: "/main/assets/images/cross_1.png"
+  }
+  images {
+    image: "/main/assets/images/cross_1.png"
+  }
+  images {
+    image: "/main/assets/images/cross_1.png"
+  }
+  images {
+    image: "/main/assets/images/cross_1.png"
+  }
+  images {
+    image: "/main/assets/images/cross_2.png"
+  }
+  images {
+    image: "/main/assets/images/cross_3.png"
+  }
+  images {
+    image: "/main/assets/images/cross_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "clock"
+  images {
+    image: "/main/assets/images/clock_1.png"
+  }
+  images {
+    image: "/main/assets/images/clock_1.png"
+  }
+  images {
+    image: "/main/assets/images/clock_1.png"
+  }
+  images {
+    image: "/main/assets/images/clock_1.png"
+  }
+  images {
+    image: "/main/assets/images/clock_1.png"
+  }
+  images {
+    image: "/main/assets/images/clock_1.png"
+  }
+  images {
+    image: "/main/assets/images/clock_2.png"
+  }
+  images {
+    image: "/main/assets/images/clock_3.png"
+  }
+  images {
+    image: "/main/assets/images/clock_4.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 10
   flip_horizontal: 0
   flip_vertical: 0
 }

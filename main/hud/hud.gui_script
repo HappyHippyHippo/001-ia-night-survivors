@@ -4,7 +4,10 @@ local world = require "main.modules.world"
 local stats = require "main.modules.stats"
 local U = require "main.modules.upgrades"
 
+-- layout units; every node hangs off a root scaled by UI_SCALE to fill the display
 local W, H = 960, 540
+local UI_SCALE = sys.get_config_int("display.width", W) / W
+local FONT_SCALE = 1 / UI_SCALE -- the 28px font is drawn 1:1 on the display
 
 local SHADOW = vmath.vector4(0.06, 0.03, 0.1, 1)
 local WHITE = vmath.vector4(1, 1, 1, 1)
@@ -46,6 +49,7 @@ end
 
 local function box(self, group, x, y, w, h, color, pivot)
 	local n = gui.new_box_node(v3(x, y), v3(w, h))
+	gui.set_parent(n, self.root)
 	gui.set_color(n, color)
 	gui.set_pivot(n, pivot or gui.PIVOT_CENTER)
 	return add(group, n)
@@ -59,10 +63,10 @@ end
 
 -- text node cloned from the template (the font provides a dark outline)
 local function text(self, group, x, y, str, scale, color, pivot)
-	scale = scale or 1
+	scale = (scale or 1) * FONT_SCALE
 	local n = gui.clone(self.template)
-	-- clones sit next to the template (first node); move to the top so boxes built earlier don't cover it
-	gui.move_above(n, nil)
+	-- reparenting appends to the root's children, so it draws above boxes built earlier
+	gui.set_parent(n, self.root)
 	gui.set_enabled(n, true)
 	gui.set_position(n, v3(x, y))
 	gui.set_text(n, str)
@@ -355,6 +359,11 @@ end
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	self.template = gui.get_node("text_template")
+	-- invisible container: children still render, scaled up to the display resolution
+	self.root = gui.new_box_node(v3(0, 0), v3(W, H))
+	gui.set_pivot(self.root, gui.PIVOT_SW)
+	gui.set_scale(self.root, vmath.vector3(UI_SCALE, UI_SCALE, 1))
+	gui.set_visible(self.root, false)
 	self.lock = 0
 	build_hud(self)
 	build_levelup(self)

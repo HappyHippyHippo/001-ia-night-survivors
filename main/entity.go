@@ -9,4 +9,8 @@ embedded_components {
   "  texture: \"/main/assets/game.atlas\"\n"
   "}\n"
   ""
+  scale {
+    x: 0.5
+    y: 0.5
+  }
 }

@@ -12,9 +12,9 @@ custom_resources =
 title_as_file_name = NightSurvivors
 
 [display]
-width = 960
-height = 540
-high_dpi = 0
+width = 1440
+height = 810
+high_dpi = 1
 samples = 0
 fullscreen = 0
 display_profiles = /builtins/render/default.display_profilesc

@@ -7,7 +7,7 @@ local weapons = require "main.modules.weapons"
 
 local M = {}
 
-local sqrt, floor, ceil, min, max = math.sqrt, math.floor, math.ceil, math.min, math.max
+local sqrt, floor, ceil, min, max, abs = math.sqrt, math.floor, math.ceil, math.min, math.max, math.abs
 local cos, sin, atan2, random, pi = math.cos, math.sin, math.atan2, math.random, math.pi
 
 local FACTORY = "/game#factory"
@@ -43,6 +43,34 @@ local function new_entity(anim, x, y, z, scale, on_done)
 	local spr = msg.url(nil, id, "sprite")
 	sprite.play_flipbook(spr, anim, on_done)
 	return id, spr
+end
+
+-- Characters have flipbooks for 8 directions: down, down_side, side, up_side, up, where the
+-- side views face right and hflip covers the left. Picks the view for a movement vector, with
+-- hysteresis so movement along a sector boundary doesn't flicker between views.
+local VIEWS = { [-2] = "down", [-1] = "down_side", [0] = "side", [1] = "up_side", [2] = "up" }
+local VIEW_INDEX = { down = -2, down_side = -1, side = 0, up_side = 1, up = 2 }
+
+local function facing(view, flip, vx, vy)
+	local ax = abs(vx)
+	if ax + abs(vy) < 1e-3 then return view, flip end
+	local a = atan2(vy, ax) / (pi / 4)      -- -2 straight down .. 0 sideways .. 2 straight up
+	local i = VIEW_INDEX[view]
+	if abs(a - i) > 0.65 then i = floor(a + 0.5) end
+	if i > -2 and i < 2 and ax > 1e-3 then flip = vx < 0 end
+	return VIEWS[i], flip
+end
+
+local function face_enemy(e, vx, vy)
+	local view, flip = facing(e.view, e.flip, vx, vy)
+	if view ~= e.view then
+		e.view = view
+		sprite.play_flipbook(e.spr, e.def.anim .. "_" .. view)
+	end
+	if flip ~= e.flip then
+		e.flip = flip
+		sprite.set_hflip(e.spr, flip)
+	end
 end
 
 local function compact(list)
@@ -138,7 +166,7 @@ function M.init()
 	M.shadow_id = go.get_id("/player_shadow")
 	M.aura_id = go.get_id("/aura")
 	M.aura_spr = msg.url("/aura#sprite")
-	sprite.play_flipbook(M.player_spr, "player_idle")
+	sprite.play_flipbook(M.player_spr, "player_idle_down")
 	sprite.play_flipbook("/player_shadow#sprite", "shadow")
 	sprite.play_flipbook(M.aura_spr, "aura")
 	M.build_ground()
@@ -163,7 +191,7 @@ function M.reset()
 	spatial.reset()
 	local s = {
 		state = "playing", time = 0, kills = 0, level = 1, xp = 0, xp_next = C.xp_to_next(1), pending = 0,
-		player = { x = 0, y = 0, hp = C.PLAYER.max_hp, fx = 1, fy = 0, hurt = 0, anim = nil },
+		player = { x = 0, y = 0, hp = C.PLAYER.max_hp, fx = 1, fy = 0, hurt = 0, anim = nil, view = "down", flip = false },
 		enemies = {}, projectiles = {}, gems = {}, pickups = {}, ebullets = {}, pools = {},
 		weapons = {}, passives = {}, picks = {},
 		dmg_by = {}, kills_by = {}, damage_taken = 0, healed = 0, xp_total = 0,
@@ -178,7 +206,8 @@ function M.reset()
 	go.set_position(vmath.vector3(0, -22, C.Z.shadow), M.shadow_id)
 	go.cancel_animations(M.player_spr, "tint")
 	go.set(M.player_spr, "tint", WHITE)
-	sprite.play_flipbook(M.player_spr, "player_idle")
+	sprite.play_flipbook(M.player_spr, "player_idle_down")
+	sprite.set_hflip(M.player_spr, false)
 	msg.post(M.aura_spr, "disable")
 	M.aura_on = false
 	M.aura_tint = nil
@@ -379,8 +408,14 @@ function M.update_player(dt)
 		p.y = p.y + iy * st.speed * dt
 		local l = sqrt(ix * ix + iy * iy)
 		p.fx, p.fy = ix / l, iy / l
+		local flip
+		p.view, flip = facing(p.view, p.flip, ix, iy)
+		if flip ~= p.flip then
+			p.flip = flip
+			sprite.set_hflip(M.player_spr, flip)
+		end
 	end
-	local anim = moving and "player_walk" or "player_idle"
+	local anim = (moving and "player_walk_" or "player_idle_") .. p.view
 	if anim ~= p.anim then
 		p.anim = anim
 		sprite.play_flipbook(M.player_spr, anim)
@@ -465,7 +500,7 @@ function M.spawn_enemy(kind, x, y, elite)
 	s.enemy_serial = s.enemy_serial + 1
 	local z = C.Z.enemy + (s.enemy_serial % 1000) * 0.0002 + ((def.boss or elite) and 0.25 or 0)
 	local scale = elite and E.scale or 1
-	local id, spr = new_entity(def.anim, x, y, z, scale)
+	local id, spr = new_entity(def.prop and def.anim or def.anim .. "_down", x, y, z, scale)
 	local hp = def.prop and def.hp or def.hp * C.hp_scale(s.time) * (elite and E.hp or 1)
 	local alpha = def.alpha or 1
 	local tint = elite and v4(E.tint, alpha) or vmath.vector4(1, 1, 1, alpha)
@@ -475,6 +510,7 @@ function M.spawn_enemy(kind, x, y, elite)
 		damage = def.damage * (elite and E.damage or 1), radius = def.radius * scale,
 		xp = def.xp * (elite and E.xp or 1), knockback = def.knockback * (elite and E.knockback or 1),
 		kx = 0, ky = 0, flash = 0, orb_t = 0, fire_t = def.ranged and def.ranged.cd * random() or 0,
+		view = "down", flip = false,
 		tint = tint,
 		flash_tint = vmath.vector4(1, 0.25, 0.25, alpha),
 		frozen_tint = vmath.vector4(FROZEN.x, FROZEN.y, FROZEN.z, alpha),
@@ -620,6 +656,7 @@ function M.update_enemies(dt)
 						end
 					end
 				end
+				face_enemy(e, vx, vy)
 				e.x = e.x + (vx + sx * 90 + e.kx) * dt
 				e.y = e.y + (vy + sy * 90 + e.ky) * dt
 				e.kx, e.ky = e.kx * decay, e.ky * decay
