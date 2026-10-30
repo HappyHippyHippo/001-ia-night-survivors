@@ -3,6 +3,7 @@
 local world = require "main.modules.world"
 local stats = require "main.modules.stats"
 local U = require "main.modules.upgrades"
+local audio = require "main.modules.audio"
 
 -- layout units; every node hangs off a root scaled by UI_SCALE to fill the display
 local W, H = 960, 540
@@ -28,6 +29,7 @@ local MSG = {
 	show_levelup = hash("show_levelup"), hide_levelup = hash("hide_levelup"),
 	show_title = hash("show_title"), show_pause = hash("show_pause"), hide_pause = hash("hide_pause"),
 	show_end = hash("show_end"), hide_screens = hash("hide_screens"),
+	show_options = hash("show_options"), hide_options = hash("hide_options"), refresh_options = hash("refresh_options"),
 }
 local IN = {
 	up = hash("up"), down = hash("down"), confirm = hash("confirm"), touch = hash("touch"),
@@ -180,7 +182,7 @@ local function build_title(self)
 	text(self, g, W / 2, 255, "WEAPONS FIRE ON THEIR OWN", 1, WHITE)
 	text(self, g, W / 2, 225, "MAX A WEAPON + ITS ITEM, OPEN A CHEST", 1, WHITE)
 	text(self, g, W / 2, 195, "TO EVOLVE IT", 1, WHITE)
-	text(self, g, W / 2, 155, "TAB/P - STATS   N - NUMBERS   M - MUTE", 1, GRAY)
+	text(self, g, W / 2, 155, "TAB/P - STATS   N - NUMBERS   M - MUTE   O - SOUND", 1, GRAY)
 	self.records_text = text(self, g, W / 2, 115, "", 1, CYAN)
 	self.start_text = text(self, g, W / 2, 60, "PRESS ENTER TO START", 1, GOLD)
 	blink(self.start_text)
@@ -230,7 +232,7 @@ local function build_pause(self)
 	box(self, g, W / 2, H / 2, W * 3, H * 3, DIM)
 	text(self, g, W / 2, 505, "PAUSED", 2, WHITE)
 	self.prows = build_rows(self, g, "PLAYER STATS", 13)
-	text(self, g, W / 2, 36, "P / TAB - RESUME", 1, GRAY)
+	text(self, g, W / 2, 36, "P / TAB - RESUME   O - SOUND", 1, GRAY)
 	show(g, false)
 end
 
@@ -242,6 +244,36 @@ local function build_end(self)
 	self.erows = build_rows(self, g, "THIS RUN", 12)
 	local again = text(self, g, W / 2, 36, "PRESS ENTER TO PLAY AGAIN", 1, GOLD)
 	blink(again)
+	text(self, g, W - 14, 36, "O - SOUND", 1, GRAY, gui.PIVOT_E)
+	show(g, false)
+end
+
+-- sound panel: one row per channel with -/+ buttons and a segmented bar
+local SEG_X, SEG_STEP = 457, 16
+
+local function build_options(self)
+	local g = {}
+	self.options = g
+	box(self, g, W / 2, H / 2, W * 3, H * 3, DIM)
+	panel(self, g, 250, 140, 710, 410, "SOUND")
+	self.orows = {}
+	for i, ch in ipairs(audio.CHANNELS) do
+		local y = 340 - (i - 1) * 56
+		local r = { segs = {} }
+		r.bg = box(self, g, W / 2, y, 440, 46, DARK)
+		r.label = text(self, g, 272, y, ch.name, 1, GRAY, gui.PIVOT_W)
+		r.minus = box(self, g, 420, y, 32, 32, BORDER)
+		text(self, g, 420, y, "-", 1, WHITE)
+		for k = 1, audio.STEPS do
+			r.segs[k] = box(self, g, SEG_X + (k - 1) * SEG_STEP, y, SEG_STEP - 2, 24, BORDER)
+		end
+		r.plus = box(self, g, 640, y, 32, 32, BORDER)
+		text(self, g, 640, y, "+", 1, WHITE)
+		r.value = text(self, g, 698, y, "", 1, WHITE, gui.PIVOT_E)
+		self.orows[i] = r
+	end
+	self.muted_text = text(self, g, W / 2, 196, "", 1, RED)
+	text(self, g, W / 2, 162, "ARROWS - ADJUST   O / ESC - BACK", 1, GRAY)
 	show(g, false)
 end
 
@@ -345,6 +377,45 @@ local function set_inventory(self)
 	end
 end
 
+local function refresh_options(self)
+	for i, r in ipairs(self.orows) do
+		local on = i == world.options_sel
+		local step = audio.step(i)
+		gui.set_color(r.bg, on and BORDER or DARK)
+		set_text(r.label, audio.CHANNELS[i].name, on and GOLD or GRAY)
+		for k, seg in ipairs(r.segs) do
+			gui.set_color(seg, k <= step and (on and GOLD or CYAN) or DARK)
+		end
+		set_text(r.value, string.format("%d%%", step * 100 / audio.STEPS))
+	end
+	set_text(self.muted_text, audio.muted and "MUTED - PRESS M TO UNMUTE" or "")
+end
+
+-- mouse over / click on the sound panel
+local function options_input(self, action_id, action)
+	local click = action_id == IN.touch and action.pressed
+	for i, r in ipairs(self.orows) do
+		if gui.pick_node(r.bg, action.x, action.y) then
+			if i ~= world.options_sel then world.select_option(i) end
+			if click then
+				if gui.pick_node(r.minus, action.x, action.y) then
+					world.set_volume(i, audio.step(i) - 1)
+				elseif gui.pick_node(r.plus, action.x, action.y) then
+					world.set_volume(i, audio.step(i) + 1)
+				else
+					for k, seg in ipairs(r.segs) do
+						-- clicking the last lit segment turns it off, so the channel can reach 0
+						if gui.pick_node(seg, action.x, action.y) then
+							world.set_volume(i, (k == audio.step(i)) and k - 1 or k)
+						end
+					end
+				end
+			end
+		end
+	end
+	return true
+end
+
 local function refresh_records(self)
 	local r = world.records
 	if r and r.runs > 0 then
@@ -371,6 +442,7 @@ function init(self)
 	build_pause(self)
 	build_end(self)
 	build_weapon_table(self)
+	build_options(self)
 	build_banner(self)
 	show(self.hud, false)
 end
@@ -434,6 +506,13 @@ function on_message(self, message_id, message, sender)
 		show(self.ending, true)
 		show(self.wtable, true)
 		fill_weapon_table(self)
+	elseif message_id == MSG.show_options then
+		refresh_options(self)
+		show(self.options, true)
+	elseif message_id == MSG.refresh_options then
+		refresh_options(self)
+	elseif message_id == MSG.hide_options then
+		show(self.options, false)
 	elseif message_id == MSG.hide_screens then
 		show(self.title, false)
 		show(self.ending, false)
@@ -446,6 +525,9 @@ function on_message(self, message_id, message, sender)
 end
 
 function on_input(self, action_id, action)
+	if world.options_open and (action_id == nil or action_id == IN.touch) then
+		return options_input(self, action_id, action)
+	end
 	if not self.choices then return false end
 	if action_id == IN.up and action.pressed then
 		select_card(self, math.max(1, (self.sel or 1) - 1))

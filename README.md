@@ -22,6 +22,7 @@ Open the folder in the Defold editor (`game.project`) and press **Project ▸ Bu
 | Damage numbers on/off | N |
 | Start / retry | Enter / Space / click / pad A |
 | Mute | M |
+| Sound volumes (master / music / SFX) | O (pad B): arrows to select / adjust, or click the bars; saved between sessions |
 
 ## Content
 
@@ -72,6 +73,7 @@ main/modules/weapons.lua      weapon behaviours
 main/modules/world.lua        simulation: movement, spawning, collisions, pickups, flow
 main/modules/spatial.lua      spatial hash for enemy queries
 main/modules/stats.lua        formatting for the stats / end screens
+main/modules/audio.lua        volume settings (sound group gains), persisted
 main/hud/                     GUI (HUD, level-up cards, title/pause/end screens), built in code
 main/render/                  follow camera render script (fixed 540-unit view height)
 main/assets/                  generated images, atlas, pixel TrueType font, sounds

@@ -34,3 +34,5 @@ key_trigger { input: KEY_4 action: "choose4" }
 gamepad_trigger { input: GAMEPAD_RPAD_LEFT action: "reroll" }
 gamepad_trigger { input: GAMEPAD_RPAD_UP action: "skip" }
 gamepad_trigger { input: GAMEPAD_BACK action: "stats" }
+key_trigger { input: KEY_O action: "options" }
+gamepad_trigger { input: GAMEPAD_RPAD_RIGHT action: "options" }

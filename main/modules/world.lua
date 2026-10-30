@@ -4,6 +4,7 @@ local C = require "main.modules.config"
 local U = require "main.modules.upgrades"
 local spatial = require "main.modules.spatial"
 local weapons = require "main.modules.weapons"
+local audio = require "main.modules.audio"
 
 local M = {}
 
@@ -23,7 +24,7 @@ local NUM_POOL_SIZE = 220
 local H = {
 	up = hash("up"), down = hash("down"), left = hash("left"), right = hash("right"),
 	confirm = hash("confirm"), pause = hash("pause"), stats = hash("stats"), touch = hash("touch"),
-	mute = hash("mute"), numbers = hash("numbers"),
+	mute = hash("mute"), numbers = hash("numbers"), options = hash("options"),
 }
 
 local scratch = {}
@@ -31,7 +32,8 @@ local sfx_last = {}
 
 M.input = { up = 0, down = 0, left = 0, right = 0 }
 M.clock = 0
-M.muted = false
+M.options_open = false
+M.options_sel = 1
 M.numbers_on = true
 
 ---------------------------------------------------------------------------
@@ -161,6 +163,7 @@ end
 
 function M.init()
 	M.load_records()
+	audio.load()
 	M.player_id = go.get_id("/player")
 	M.player_spr = msg.url("/player#sprite")
 	M.shadow_id = go.get_id("/player_shadow")
@@ -318,8 +321,68 @@ function M.toggle_pause()
 	end
 end
 
+---------------------------------------------------------------------------
+-- sound options panel (over the title, pause and end screens)
+---------------------------------------------------------------------------
+
+function M.open_options()
+	local st = M.s.state
+	if st == "levelup" then return end
+	if st == "playing" then M.toggle_pause() end
+	M.options_open = true
+	-- let the music play while paused so its volume can be heard
+	if M.s.state == "paused" then sound.pause(MUSIC, false) end
+	msg.post(HUD, "show_options")
+end
+
+function M.close_options()
+	M.options_open = false
+	if M.s.state == "paused" then sound.pause(MUSIC, true) end
+	msg.post(HUD, "hide_options")
+end
+
+function M.select_option(index)
+	M.options_sel = max(1, min(#audio.CHANNELS, index))
+	msg.post(HUD, "refresh_options")
+end
+
+function M.set_volume(index, step)
+	M.options_sel = index
+	audio.set_step(index, step)
+	M.sfx("select", 0)
+	msg.post(HUD, "refresh_options")
+end
+
+local function options_input(action_id, action)
+	if not action.pressed then return end
+	local sel = M.options_sel
+	if action_id == H.up then
+		M.select_option(sel - 1)
+	elseif action_id == H.down then
+		M.select_option(sel + 1)
+	elseif action_id == H.left then
+		M.set_volume(sel, audio.step(sel) - 1)
+	elseif action_id == H.right then
+		M.set_volume(sel, audio.step(sel) + 1)
+	elseif action_id == H.options or action_id == H.pause or action_id == H.stats or action_id == H.confirm then
+		M.close_options()
+	elseif action_id == H.mute then
+		audio.toggle_mute()
+		msg.post(HUD, "refresh_options")
+	end
+end
+
 function M.on_input(action_id, action)
 	local inp = M.input
+	if M.options_open then
+		-- keep movement keys in sync so nothing sticks after the panel closes
+		if action.released then
+			if action_id == H.up then inp.up = 0 elseif action_id == H.down then inp.down = 0
+			elseif action_id == H.left then inp.left = 0 elseif action_id == H.right then inp.right = 0 end
+		end
+		options_input(action_id, action)
+		return
+	end
 	if action_id == H.up then
 		inp.up = action.released and 0 or action.value
 	elseif action_id == H.down then
@@ -336,8 +399,9 @@ function M.on_input(action_id, action)
 	elseif (action_id == H.pause or action_id == H.stats) and action.pressed then
 		M.toggle_pause()
 	elseif action_id == H.mute and action.pressed then
-		M.muted = not M.muted
-		sound.set_group_gain(hash("master"), M.muted and 0 or 1)
+		audio.toggle_mute()
+	elseif action_id == H.options and action.pressed then
+		M.open_options()
 	elseif action_id == H.numbers and action.pressed then
 		M.numbers_on = not M.numbers_on
 		M.banner(M.numbers_on and "DAMAGE NUMBERS ON" or "DAMAGE NUMBERS OFF")
